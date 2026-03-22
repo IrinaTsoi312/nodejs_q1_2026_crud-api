@@ -27,23 +27,45 @@ export async function productRoutes(app: FastifyInstance) {
   });
 
   app.post("/api/products", async (req, reply) => {
-    const parsed = newProductSchema.safeParse(req.body);
+    const isArray = Array.isArray(req.body);
+    const itemsToCreate = isArray ? (req.body as unknown[]) : [req.body];
 
-    if (!parsed.success) {
+    const validations = [];
+    const errors = [];
+
+    for (let i = 0; i < itemsToCreate.length; i++) {
+      const parsed = newProductSchema.safeParse(itemsToCreate[i]);
+
+      if (!parsed.success) {
+        errors.push({
+          index: i,
+          message: "Missing or invalid required fields",
+          errors: parsed.error.format(),
+        });
+      } else {
+        validations.push({ index: i, data: parsed.data });
+      }
+    }
+
+    if (errors.length > 0) {
       return reply.status(400).send({
-        message: "Invalid product data",
-        errors: parsed.error,
+        message: "Validation failed - missing or invalid required fields",
+        errors,
       });
     }
 
-    const newProduct: Product = {
-      id: randomUUID(),
-      ...parsed.data,
-    };
+    const createdProducts: Product[] = [];
+    for (const validation of validations) {
+      const newProduct: Product = {
+        id: randomUUID(),
+        ...validation.data,
+      };
 
-    products.push(newProduct);
+      products.push(newProduct);
+      createdProducts.push(newProduct);
+    }
 
-    return reply.status(201).send(newProduct);
+    return reply.status(201).send(isArray ? createdProducts : createdProducts[0]);
   });
 
   app.put("/api/products/:id", async (req, reply) => {
@@ -58,7 +80,7 @@ export async function productRoutes(app: FastifyInstance) {
     if (!parsed.success) {
       return reply.status(400).send({
         message: "Invalid product data",
-        errors: parsed.error.format(),
+        errors: parsed.error,
       });
     }
 

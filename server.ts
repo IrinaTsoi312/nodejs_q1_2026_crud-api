@@ -1,5 +1,6 @@
 import Fastify from "fastify";
-import { env } from "./env.js";
+import { env } from "./src/env.js";
+import { productRoutes } from "./src/methods/crud-routes.js";
 
 const app = Fastify({
   logger: true,
@@ -8,6 +9,15 @@ const app = Fastify({
 app.get("/", async () => {
   return { message: "Welcome to CRUD API!" };
 });
+
+app.setNotFoundHandler((request, reply) => {
+  reply.status(404).send({
+    message: `Route ${request.method} ${request.url} not found`,
+  });
+});
+
+
+productRoutes(app);
 
 const start = async () => {
   try {

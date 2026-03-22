@@ -8,7 +8,7 @@ export const newProductSchema  = z.object({
   inStock: z.boolean()
 });
 
-export const uuidSchema = z.string();
+export const uuidSchema = z.uuid();
 
 export const productSchema = newProductSchema.extend({
   id: uuidSchema,
