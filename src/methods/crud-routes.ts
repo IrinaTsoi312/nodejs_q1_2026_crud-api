@@ -2,10 +2,13 @@ import { FastifyInstance } from "fastify";
 import { randomUUID } from "crypto";
 import { Product, Products } from "../productsDB/products.types";
 import { newProductSchema, updateProductSchema, uuidSchema } from "../schemas/productsSchema";
+import { env } from "../env";
 
-const products: Products = [];
+const productsDEV: Products = [];
+const productsPROD: Products = [];
 
 export async function productRoutes(app: FastifyInstance) {
+  const products = env.NODE_ENV === "development" ? productsDEV : productsPROD;
   app.get("/api/products", async (_, reply) => {
     return reply.status(200).send(products);
   });
