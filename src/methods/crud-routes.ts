@@ -7,8 +7,18 @@ import { env } from "../env";
 const productsDEV: Products = [];
 const productsPROD: Products = [];
 
-export async function productRoutes(app: FastifyInstance) {
-  const products = env.NODE_ENV === "development" ? productsDEV : productsPROD;
+function notifyMasterProcess(operation: string, data: any) {
+  if (process.send) {
+    process.send({
+      type: 'PRODUCT_OPERATION',
+      operation,
+      ...data,
+    });
+  }
+}
+
+export async function productRoutes(app: FastifyInstance, productsArray?: Products) {
+  const products = productsArray || (env.NODE_ENV === "development" ? productsDEV : productsPROD);
   app.get("/api/products", async (_, reply) => {
     return reply.status(200).send(products);
   });
@@ -66,6 +76,10 @@ export async function productRoutes(app: FastifyInstance) {
 
       products.push(newProduct);
       createdProducts.push(newProduct);
+
+      notifyMasterProcess('POST', {
+        products: [newProduct],
+      });
     }
 
     return reply.status(201).send(isArray ? createdProducts : createdProducts[0]);
@@ -95,6 +109,10 @@ export async function productRoutes(app: FastifyInstance) {
 
     Object.assign(product, parsed.data);
 
+    notifyMasterProcess('PUT', {
+      products: [product],
+    });
+
     return reply.status(200).send(product);
   });
 
@@ -111,6 +129,10 @@ export async function productRoutes(app: FastifyInstance) {
     }
 
     products.splice(index, 1);
+
+    notifyMasterProcess('DELETE', {
+      productId: id,
+    });
 
     return reply.status(204).send();
   });
