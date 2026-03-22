@@ -19,12 +19,16 @@ function notifyMasterProcess(operation: string, data: any) {
 
 export async function productRoutes(app: FastifyInstance, productsArray?: Products) {
   const products = productsArray || (env.NODE_ENV === "development" ? productsDEV : productsPROD);
-  app.get("/api/products", async (_, reply) => {
+  app.get("/api/products", async (req, reply) => {
+    const port = req.server.addresses()[0].port;
+    console.log(`[GET /api/products] Running on port ${port}`);
     return reply.status(200).send(products);
   });
 
   app.get("/api/products/:id", async (req, reply) => {
     const { id } = req.params as { id: string };
+    const port = req.server.addresses()[0].port;
+    console.log(`[GET /api/products/:id] Running on port ${port}`);
 
     if (!uuidSchema.safeParse(id).success) {
       return reply.status(400).send({ message: "Invalid productId" });
@@ -40,6 +44,8 @@ export async function productRoutes(app: FastifyInstance, productsArray?: Produc
   });
 
   app.post("/api/products", async (req, reply) => {
+    const port = req.server.addresses()[0].port;
+    console.log(`[POST /api/products] Running on port ${port}`);
     const isArray = Array.isArray(req.body);
     const itemsToCreate = isArray ? (req.body as unknown[]) : [req.body];
 
@@ -87,6 +93,8 @@ export async function productRoutes(app: FastifyInstance, productsArray?: Produc
 
   app.put("/api/products/:id", async (req, reply) => {
     const { id } = req.params as { id: string };
+    const port = req.server.addresses()[0].port;
+    console.log(`[PUT /api/products/:id] Running on port ${port}`);
 
     if (!uuidSchema.safeParse(id).success) {
       return reply.status(400).send({ message: "Invalid productId" });
@@ -118,6 +126,8 @@ export async function productRoutes(app: FastifyInstance, productsArray?: Produc
 
   app.delete("/api/products/:id", async (req, reply) => {
     const { id } = req.params as { id: string };
+    const port = req.server.addresses()[0].port;
+    console.log(`[DELETE /api/products/:id] Running on port ${port}`);
 
     if (!uuidSchema.safeParse(id).success) {
       return reply.status(400).send({ message: "Invalid productId" });
