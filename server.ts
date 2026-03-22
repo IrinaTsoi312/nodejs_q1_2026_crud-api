@@ -16,6 +16,9 @@ app.setNotFoundHandler((request, reply) => {
   });
 });
 
+app.get("/error", async () => {
+  throw new Error("Test");
+});
 
 productRoutes(app);
 
